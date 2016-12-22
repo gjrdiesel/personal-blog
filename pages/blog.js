@@ -3,16 +3,8 @@ import React from 'react'
 import 'isomorphic-fetch'
 import Layout from '../components/Layout'
 import BlogEntry from '../components/BlogEntry'
-
-function slugify(text)
-{
-      return text.toString().toLowerCase()
-        .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
-}
+import BlogIndex from '../components/BlogIndex'
+import Slugify from '../components/Slugify'
 
 export default class extends React.Component {
 
@@ -24,9 +16,8 @@ export default class extends React.Component {
         const url = 'https://api.github.com/search/issues';
 
         if( slug ) {
-            const res = await fetch(url+'?q=repo:gjrdiesel/personal-blog+in:title+'+slugify(slug));
+            const res = await fetch(url+'?q=repo:gjrdiesel/personal-blog+in:title+'+Slugify(slug));
             let post = await res.json();
-            post = post[0]; 
             return { post }; 
         }
 
@@ -42,9 +33,9 @@ export default class extends React.Component {
         let content = null;
 
         if( this.props.issues ){
-            content = <div>Index</div>;
+            content = <BlogIndex issues={ this.props.issues.items }/>;
         } else {
-            <BlogEntry post={ this.props.post }/>
+            content = <BlogEntry post={ this.props.post.items[0] }/>
         }
 
      return <Layout>
