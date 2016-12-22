@@ -1,48 +1,54 @@
-import Layout from '../components/layout'
+import _ from 'lodash'
+import React from 'react'
+import 'isomorphic-fetch'
+import Layout from '../components/Layout'
+import BlogEntry from '../components/BlogEntry'
 
-export default () => (
-    <Layout>
-        <div className="container">
-            <div className="card is-fullwidth" style={{ marginTop: '100px' }}>
-             <header className="card-header">
-               <p className="card-header-title">
-                 Component
-           </p>
-               <a className="card-header-icon">
-                 <i className="fa fa-angle-down"></i>
-               </a>
-             </header>
-             <div className="card-content">
-               <div className="content">
-                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris. <a href="#">#css</a> <a href="#">#responsive</a>
-                 <br/>
-                 <small>11:09 PM - 1 Jan 2016</small>
-               </div>
-             </div>
-             <footer className="card-footer">
-               <a className="card-footer-item">Read more</a>
-             </footer>
-           </div> 
-            <div className="card is-fullwidth" style={{ marginTop: '100px' }}>
-             <header className="card-header">
-               <p className="card-header-title">
-                 Component
-           </p>
-               <a className="card-header-icon">
-                 <i className="fa fa-angle-down"></i>
-               </a>
-             </header>
-             <div className="card-content">
-               <div className="content">
-                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris. <a href="#">#css</a> <a href="#">#responsive</a>
-                 <br/>
-                 <small>11:09 PM - 1 Jan 2016</small>
-               </div>
-             </div>
-             <footer className="card-footer">
-               <a className="card-footer-item">Read more</a>
-             </footer>
-           </div> 
-            </div>
-    </Layout>
-)
+function slugify(text)
+{
+      return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')           // Replace spaces with -
+        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+        .replace(/^-+/, '')             // Trim - from start of text
+        .replace(/-+$/, '');            // Trim - from end of text
+}
+
+export default class extends React.Component {
+
+    static async getInitialProps({ query }){
+
+        let slug = _.keys(query)[0]
+            , view = slug ? 'entry' : 'index';
+        
+        const url = 'https://api.github.com/search/issues';
+
+        if( slug ) {
+            const res = await fetch(url+'?q=repo:gjrdiesel/personal-blog+in:title+'+slugify(slug));
+            let post = await res.json();
+            post = post[0]; 
+            return { post }; 
+        }
+
+
+        // index view ( grab all the posts )
+        const res = await fetch(url+'?q=repo:gjrdiesel/personal-blog');
+        const issues = await res.json();
+        return { issues };
+
+     }
+
+    render() { 
+        let content = null;
+
+        if( this.props.issues ){
+            content = <div>Index</div>;
+        } else {
+            <BlogEntry post={ this.props.post }/>
+        }
+
+     return <Layout>
+            { content }
+        </Layout>
+    }
+}
